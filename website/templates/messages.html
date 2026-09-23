@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ other_user.first_name or other_user.email }} · Messages{% endblock %}
+{% block content %}
+<div class="chat-layout">
+  <aside class="section-card conversation-sidebar">
+    <div class="section-heading"><div><span class="eyebrow">MESSAGES</span><h3>Conversations</h3></div><a href="{{ url_for('views.messages_index') }}" class="btn btn-icon"><i class="bi bi-plus-lg"></i></a></div>
+    <div class="conversation-list">{% for u in sidebar_users %}<a href="{{ url_for('views.messages', user_id=u.id) }}" class="conversation-item {% if u.id==other_user.id %}active{% endif %}"><span class="avatar avatar-sm">{{ (u.first_name or u.email)[0]|upper }}</span><span class="flex-grow-1 min-w-0"><strong>{{ u.first_name or u.email }}</strong><small>{{ u.email }}</small></span>{% set unread=unread_map.get(u.id,0) %}{% if unread %}<span class="badge badge-danger">{{ unread }}</span>{% endif %}</a>{% endfor %}</div>
+  </aside>
+  <section class="section-card chat-panel">
+    <header class="chat-header"><div class="d-flex align-items-center"><span class="avatar mr-3">{{ (other_user.first_name or other_user.email)[0]|upper }}</span><div><h4>{{ other_user.first_name or other_user.email }}</h4><small>{{ other_user.email }} · {{ other_user.role|title }}</small></div></div><span class="status-chip"><span class="status-dot"></span> Workspace member</span></header>
+    <div class="messages-feed" id="messages-container" aria-live="polite">{% for msg in messages %}<div class="message-line {% if msg.sender_id==current_user.id %}self{% endif %}"><div class="bubble {% if msg.sender_id==current_user.id %}me{% else %}them{% endif %}"><div>{{ msg.content }}</div><small>{{ msg.timestamp.strftime('%d %b · %H:%M') }}</small></div></div>{% else %}<div class="chat-empty" id="chat-empty"><i class="bi bi-chat-heart"></i><strong>Start the conversation</strong><span>Send a message to {{ other_user.first_name or other_user.email }}.</span></div>{% endfor %}</div>
+    <form id="msg-form" class="chat-composer"><input id="msg-input" class="form-control" maxlength="2000" placeholder="Write a message..." autocomplete="off" required><button class="btn btn-brand" type="submit"><i class="bi bi-send"></i><span class="d-none d-sm-inline ml-1">Send</span></button></form>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script>
+const feed=document.getElementById('messages-container'), form=document.getElementById('msg-form'), input=document.getElementById('msg-input');const OTHER={{ other_user.id }}, ME={{ current_user.id }};let lastId={% if messages %}{{ messages[-1].id }}{% else %}0{% endif %};
+feed.scrollTop=feed.scrollHeight;
+function appendMessage(m){document.getElementById('chat-empty')?.remove();const line=document.createElement('div');line.className='message-line'+(m.sender_id===ME?' self':'');const b=document.createElement('div');b.className='bubble '+(m.sender_id===ME?'me':'them');const c=document.createElement('div');c.textContent=m.content;const t=document.createElement('small');t.textContent=m.timestamp;b.append(c,t);line.appendChild(b);feed.appendChild(line);feed.scrollTop=feed.scrollHeight;}
+function load(){apiFetch(`/messages/${OTHER}/feed?after=${lastId}`).then(r=>r.json()).then(list=>{list.forEach(m=>{appendMessage(m);lastId=Math.max(lastId,m.id)});if(list.length)apiFetch(`/messages/${OTHER}/read`,{method:'POST'});}).catch(()=>{});}
+form.addEventListener('submit',e=>{e.preventDefault();const text=input.value.trim();if(!text)return;input.disabled=true;apiFetch(`/messages/${OTHER}/send`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:text})}).then(r=>r.json().then(d=>({ok:r.ok,d}))).then(({ok,d})=>{if(!ok)throw new Error(d.error||'Send failed');appendMessage(d.message);lastId=Math.max(lastId,d.message.id);input.value='';}).catch(err=>alert(err.message)).finally(()=>{input.disabled=false;input.focus()});});
+setInterval(load,4000);load();
+</script>{% endblock %}

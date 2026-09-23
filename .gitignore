@@ -1,0 +1,45 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+old_flask_env/
+
+# Secrets / local config
+.env
+*.env
+!.env.example
+
+# Local databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.bak*
+
+# User uploads
+uploads/*
+!uploads/.gitkeep
+
+# Logs / temporary files
+*.log
+*.tmp
+temp/
+tmp/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Node / unrelated build artefacts
+node_modules/
+.expo/

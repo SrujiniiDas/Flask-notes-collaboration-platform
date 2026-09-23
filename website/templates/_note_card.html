@@ -1,0 +1,29 @@
+<article class="note-card">
+  <div class="note-card-top">
+    <div class="d-flex flex-wrap align-items-center gap-1">
+      {% if note.pinned %}<span class="chip chip-warning"><i class="bi bi-pin-angle-fill"></i> Pinned</span>{% endif %}
+      <span class="chip {{ 'chip-success' if note.is_public else 'chip-neutral' }}"><i class="bi {{ 'bi-globe2' if note.is_public else 'bi-lock' }}"></i> {{ 'Public' if note.is_public else 'Private' }}</span>
+    </div>
+    {% if note.user_id == current_user.id %}
+    <div class="dropdown">
+      <button class="btn btn-icon btn-sm" data-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+      <div class="dropdown-menu dropdown-menu-right border-0 shadow-lg">
+        <a class="dropdown-item" href="{{ url_for('views.edit_note_page', note_id=note.id) }}"><i class="bi bi-pencil mr-2"></i>Edit</a>
+        <form action="{{ url_for('views.duplicate_note', note_id=note.id) }}" method="POST"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="dropdown-item" type="submit"><i class="bi bi-copy mr-2"></i>Duplicate</button></form>
+        <button class="dropdown-item text-danger" type="button" onclick="deleteNote({{ note.id }})"><i class="bi bi-trash mr-2"></i>Delete</button>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  <a class="note-card-body" href="{{ url_for('views.view_note', note_id=note.id) }}">
+    <h4>{{ note.title or 'Untitled' }}</h4>
+    <div class="note-excerpt">{{ note.content|striptags|truncate(180) }}</div>
+  </a>
+  <div class="note-tags">
+    {% for tag in note.tags[:4] %}<span>#{{ tag.name }}</span>{% endfor %}
+  </div>
+  <div class="note-card-footer">
+    <span class="small text-muted">{{ note.timestamp.strftime('%d %b %Y') if note.timestamp else '' }}</span>
+    <a href="{{ url_for('views.view_note', note_id=note.id) }}" class="icon-link">Open <i class="bi bi-arrow-up-right"></i></a>
+  </div>
+</article>

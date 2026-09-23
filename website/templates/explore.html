@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Explore · CollabNotes{% endblock %}
+{% block content %}
+<div class="page-title-row"><div><span class="eyebrow">COMMUNITY</span><h1>Explore public notes</h1><p>Discover knowledge shared by people in your workspace.</p></div></div>
+<form method="GET" class="filter-bar mb-4"><div class="search-field flex-grow-1"><i class="bi bi-search"></i><input name="q" value="{{ q }}" placeholder="Search public notes..."></div><button class="btn btn-brand" type="submit">Search</button></form>
+{% if notes %}<div class="notes-grid">{% for note in notes %}{% include '_note_card.html' %}{% endfor %}</div>{% else %}<div class="empty-state large"><i class="bi bi-compass"></i><h4>Nothing to explore yet</h4><p>Public notes shared by other users will appear here.</p></div>{% endif %}
+{% endblock %}

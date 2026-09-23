@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · CollabNotes{% endblock %}
+{% block content %}
+<section class="hero-panel mb-4">
+  <div>
+    <span class="eyebrow">YOUR WORKSPACE</span>
+    <h1>Good to see you, {{ (current_user.first_name or 'there').split(' ')[0] }}.</h1>
+    <p>Capture ideas, stay in sync with classes, and keep conversations moving.</p>
+  </div>
+  <div class="hero-actions">
+    <a class="btn btn-brand" href="{{ url_for('views.create_note') }}"><i class="bi bi-plus-lg mr-1"></i>Create note</a>
+    <a class="btn btn-soft" href="{{ url_for('views.classes') }}"><i class="bi bi-people mr-1"></i>Open classes</a>
+  </div>
+</section>
+
+<div class="stats-grid mb-4">
+  <a class="stat-card" href="{{ url_for('views.my_notes') }}"><span class="stat-icon purple"><i class="bi bi-stickies"></i></span><span><strong>{{ stats.notes }}</strong><small>Total notes</small></span></a>
+  <a class="stat-card" href="{{ url_for('views.my_notes', visibility='pinned') }}"><span class="stat-icon amber"><i class="bi bi-pin-angle"></i></span><span><strong>{{ stats.pinned_notes }}</strong><small>Pinned</small></span></a>
+  <a class="stat-card" href="{{ url_for('views.classes') }}"><span class="stat-icon blue"><i class="bi bi-mortarboard"></i></span><span><strong>{{ stats.classes }}</strong><small>Classes</small></span></a>
+  <a class="stat-card" href="{{ url_for('views.messages_index') }}"><span class="stat-icon green"><i class="bi bi-chat-left-text"></i></span><span><strong>{{ stats.unread }}</strong><small>Unread</small></span></a>
+</div>
+
+<div class="row">
+  <div class="col-xl-8">
+    <section class="section-card mb-4">
+      <div class="section-heading"><div><span class="eyebrow">NOTES</span><h3>Recent notes</h3></div><a href="{{ url_for('views.my_notes') }}">View all <i class="bi bi-arrow-right"></i></a></div>
+      {% if recent_notes %}
+      <div class="note-list-compact">
+        {% for note in recent_notes %}
+        <a class="compact-note" href="{{ url_for('views.view_note', note_id=note.id) }}">
+          <span class="note-glyph"><i class="bi bi-file-earmark-text"></i></span>
+          <span class="flex-grow-1 min-w-0"><strong>{{ note.title or 'Untitled' }}</strong><small>{{ note.timestamp.strftime('%d %b %Y') if note.timestamp else '' }} · {{ 'Public' if note.is_public else 'Private' }}</small></span>
+          {% if note.pinned %}<i class="bi bi-pin-angle-fill text-warning"></i>{% endif %}<i class="bi bi-chevron-right text-muted"></i>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state"><i class="bi bi-journal-plus"></i><h5>Your workspace is empty</h5><p>Create your first note to get started.</p><a class="btn btn-brand btn-sm" href="{{ url_for('views.create_note') }}">Create note</a></div>
+      {% endif %}
+    </section>
+
+    <section class="section-card mb-4">
+      <div class="section-heading"><div><span class="eyebrow">CLASS ACTIVITY</span><h3>Latest updates</h3></div></div>
+      {% if recent_posts %}
+        <div class="timeline-list">
+        {% for post in recent_posts %}
+          <a class="timeline-item" href="{{ url_for('views.class_feed', class_id=post.classroom_id) }}">
+            <span class="timeline-dot"></span><span><strong>{{ post.title or post.classroom.name }}</strong><p>{{ post.content|striptags|truncate(125) }}</p><small>{{ post.classroom.name }} · {{ post.timestamp.strftime('%d %b, %H:%M') if post.timestamp else '' }}</small></span>
+          </a>
+        {% endfor %}
+        </div>
+      {% else %}<div class="empty-inline">No class updates yet.</div>{% endif %}
+    </section>
+  </div>
+  <div class="col-xl-4">
+    <section class="section-card mb-4">
+      <div class="section-heading"><div><span class="eyebrow">QUICK ACCESS</span><h3>Your classes</h3></div><a href="{{ url_for('views.classes') }}">All</a></div>
+      {% if classes_for_user %}
+      <div class="class-mini-list">
+        {% for cls in classes_for_user %}
+        <a href="{{ url_for('views.class_feed', class_id=cls.id) }}" class="class-mini"><span class="class-avatar">{{ cls.name[:2]|upper }}</span><span><strong>{{ cls.name }}</strong><small>{{ cls.students|length }} students · {{ cls.code }}</small></span></a>
+        {% endfor %}
+      </div>
+      {% else %}<div class="empty-inline">Join a class using a class code.</div>{% endif %}
+    </section>
+
+    <section class="section-card mb-4">
+      <div class="section-heading"><div><span class="eyebrow">DISCOVER</span><h3>Public notes</h3></div><a href="{{ url_for('views.explore') }}">Explore</a></div>
+      {% if popular_public %}
+        {% for note in popular_public %}
+        <a href="{{ url_for('views.view_note', note_id=note.id) }}" class="discovery-note"><strong>{{ note.title or 'Untitled' }}</strong><small>by {{ note.owner.first_name or note.owner.email }}</small></a>
+        {% endfor %}
+      {% else %}<div class="empty-inline">No public notes to discover yet.</div>{% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

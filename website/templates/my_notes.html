@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}My Notes · CollabNotes{% endblock %}
+{% block content %}
+<div class="page-title-row">
+  <div><span class="eyebrow">LIBRARY</span><h1>My notes</h1><p>Search, organise and share everything you’re working on.</p></div>
+  <a class="btn btn-brand" href="{{ url_for('views.create_note') }}"><i class="bi bi-plus-lg mr-1"></i>New note</a>
+</div>
+<form method="GET" class="filter-bar mb-4">
+  <div class="search-field"><i class="bi bi-search"></i><input name="q" value="{{ q }}" placeholder="Search title or content..."></div>
+  <select name="visibility" class="custom-select"><option value="all" {% if visibility=='all' %}selected{% endif %}>All notes</option><option value="pinned" {% if visibility=='pinned' %}selected{% endif %}>Pinned</option><option value="public" {% if visibility=='public' %}selected{% endif %}>Public</option><option value="private" {% if visibility=='private' %}selected{% endif %}>Private</option></select>
+  <select name="tag" class="custom-select"><option value="">All tags</option>{% for tag in available_tags %}<option value="{{ tag.name }}" {% if tag_name==tag.name %}selected{% endif %}>#{{ tag.name }}</option>{% endfor %}</select>
+  <select name="sort" class="custom-select"><option value="newest" {% if sort=='newest' %}selected{% endif %}>Newest</option><option value="oldest" {% if sort=='oldest' %}selected{% endif %}>Oldest</option><option value="title" {% if sort=='title' %}selected{% endif %}>Title A–Z</option></select>
+  <button class="btn btn-soft" type="submit">Filter</button>
+  {% if q or tag_name or visibility != 'all' or sort != 'newest' %}<a class="btn btn-link" href="{{ url_for('views.my_notes') }}">Clear</a>{% endif %}
+</form>
+{% if user_notes %}
+<div class="notes-grid">{% for note in user_notes %}{% include '_note_card.html' %}{% endfor %}</div>
+{% else %}
+<div class="empty-state large"><i class="bi bi-search"></i><h4>No notes found</h4><p>Try changing the filters or create a new note.</p><a class="btn btn-brand" href="{{ url_for('views.create_note') }}">Create note</a></div>
+{% endif %}
+{% endblock %}
